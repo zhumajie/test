@@ -1,0 +1,109 @@
+<#include "/macro.include"/>
+<#assign className = table.className>   
+<#assign classNameLower = className?uncap_first> 
+<#assign classNameLowerCase = className?lower_case>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="${basepackage}.${classNameLowerCase}.dao.${className}Mapper">
+	<!-- ${tableDesc}基础结果集 -->
+	<resultMap id="BaseResult" type="${basepackage}.${classNameLowerCase}.vo.${className}">
+		<#list table.columns as column>
+		<#if column.pk><id column="${column.sqlName}" property="${column.columnNameLower}"/><#else><result column="${column.sqlName}" property="${column.columnNameLower}"/></#if>
+		</#list>
+	</resultMap>
+
+	<!-- ${tableDesc}基础查询列 -->
+	<sql id="BaseColumn">
+		<#list table.columns as column>t.${column.sqlName}<#if column_has_next>, </#if></#list>
+	</sql>
+
+	<!-- 插入信息到${tableDesc}表 -->
+    <insert id="insert${className}" parameterType="${basepackage}.${classNameLowerCase}.vo.${className}" useGeneratedKeys="true" keyProperty="<#list table.columns as column><#if column.pk>${column.columnNameLower}</#if></#list>">
+        insert into ${table.sqlName} (
+        <#list table.notPkColumns as column>${column.sqlName} <#if column_has_next>,</#if></#list>
+        ) values (
+        <#list table.notPkColumns as column><@mapperEl '${column.columnNameLower}'/> <#if column_has_next>,</#if></#list>
+        )
+    </insert>
+
+	<!-- 根据ID修改${tableDesc}表信息 -->
+    <update id="update${className}" parameterType="${basepackage}.${classNameLowerCase}.vo.${className}">
+        update ${table.sqlName} t set
+		<#list table.notPkColumns as column>
+		<if test="${column.columnNameLower} != null">
+			t.${column.sqlName} = <@mapperEl '${column.columnNameLower}'/> <#if column_has_next>,</#if>
+		</if>
+		</#list>
+        where
+		<#list table.compositeIdColumns as column>t.${column.sqlName} = <@mapperEl '${column.columnNameLower}'/> 
+		<#if column_has_next>AND </#if></#list>
+    </update>
+	
+	<!-- 根据ID删除${tableDesc}表信息 -->
+    <delete id="delete${className}" parameterType="java.util.List">
+		update ${table.sqlName} t set t.del_flag = '1'<!-- 注释物理删除 delete t from ${table.sqlName} t -->
+		where
+        <#list table.compositeIdColumns as column>t.${column.sqlName} in 
+        <foreach collection="list" item="id" open="(" close=")" separator=","><@mapperEl 'id'/></foreach>
+        <#if column_has_next>and </#if></#list>
+    </delete>
+    
+	<!-- 根据ID查询${tableDesc}表单条信息 -->
+    <select id="select${className}ForOne" parameterType="${basepackage}.${classNameLowerCase}.vo.${className}" resultMap="BaseResult">
+	    select
+		<include refid="BaseColumn"/>
+		from ${table.sqlName} t
+		where
+		<#list table.compositeIdColumns as column>t.${column.sqlName} = <@mapperEl '${column.columnNameLower}'/> 
+		<#if column_has_next>AND </#if></#list>
+    </select>
+
+	<!-- ${tableDesc}基础查询条件 -->
+	<sql id="BaseWhere">
+		<where>
+		<#list table.columns as column>
+			<#if column.isDateTimeColumn>
+			<if test="${column.columnNameLower}BeginStr != null and ${column.columnNameLower}BeginStr != ''">
+				and DATE_FORMAT(t.${column.sqlName},'%Y-%m-%d') <![CDATA[>=]]> <@mapperEl '${column.columnNameLower}BeginStr'/>
+			</if>
+			<if test="${column.columnNameLower}EndStr != null and ${column.columnNameLower}EndStr != ''">
+				and DATE_FORMAT(t.${column.sqlName},'%Y-%m-%d') <![CDATA[<=]]> <@mapperEl '${column.columnNameLower}EndStr'/>
+			</if>
+			<#else>
+			<if test="${column.columnNameLower} != null and ${column.columnNameLower} != ''">
+				and t.${column.sqlName} = <@mapperEl '${column.columnNameLower}'/>
+			</if>
+		</#if>
+		</#list>
+			<if test="${table.idColumn.columnNameFirstLower}Arr!=null and ${table.idColumn.columnNameFirstLower}Arr.length>0">
+				and t.${table.idColumn.sqlName} in
+				<foreach item="item" index="index" collection="${table.idColumn.columnNameFirstLower}Arr" open="(" separator="," close=")"><@mapperEl 'item'/></foreach>
+			</if>
+		</where>
+	</sql>
+    
+    <!-- 根据参数查询${tableDesc}分页信息_为公用不设置parameterType -->
+    <select id="select${className}ForPage" resultMap="BaseResult">
+    	select
+		<include refid="BaseColumn"/>
+		from ${table.sqlName} t
+		<include refid="BaseWhere"/>
+		order by <#list table.compositeIdColumns as column>t.${column.sqlName} desc<#if column_has_next>, </#if></#list>
+		limit <@mapperEl 'startRowNum'/>,<@mapperEl 'endRowNum'/>
+    </select>
+	<select id="select${className}ForPageCount" resultType="int">
+        select count(1) from ${table.sqlName} t
+		<include refid="BaseWhere"/>
+    </select>
+	
+	<!-- 根据参数查询${tableDesc}信息列表 -->
+    <select id="select${className}ForList" parameterType="${basepackage}.${classNameLowerCase}.vo.${className}" resultMap="BaseResult">
+		select
+		<include refid="BaseColumn"/>
+		from ${table.sqlName} t
+		<include refid="BaseWhere"/>
+		order by <#list table.compositeIdColumns as column>t.${column.sqlName} desc<#if column_has_next>, </#if></#list>
+    </select>
+	
+</mapper>
+

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.wanmi</groupId>
+    <artifactId>rapid_generator</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <dependencies>
+        <!-- mysql -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.35</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- 日志打印 log4j包 -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.14</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 代码生成工具https://mvnrepository.com/artifact/com.googlecode.rapid-framework/rapid-generator -->
+        <dependency>
+            <groupId>com.googlecode.rapid-framework</groupId>
+            <artifactId>rapid-generator</artifactId>
+            <version>4.0.6</version>
+        </dependency>
+        <!-- 代码生成器扩展包 -->
+        <dependency>
+            <groupId>com.googlecode.rapid-framework</groupId>
+            <artifactId>rapid-generator-ext</artifactId>
+            <version>4.0.6</version>
+        </dependency>
+        <!-- 代码生成器模板,模板根目录通过 classpath:generator/template/rapid 可以引用 -->
+        <dependency>
+            <groupId>com.googlecode.rapid-framework</groupId>
+            <artifactId>rapid-generator-template</artifactId>
+            <version>4.0.6</version>
+        </dependency>
+    </dependencies>
+
+</project>
